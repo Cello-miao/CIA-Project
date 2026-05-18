@@ -78,21 +78,11 @@ npm test       # Run tests
 npm run build  # TypeScript compilation
 ```
 
-## Deployment
-
-For production deployment across multiple VMs, see [deployment guide](docs/deployment.md).
-
 ### Architecture
 - **VM1**: Frontend (Nginx)
 - **VM2**: API (Node.js + PM2)
 - **VM3**: Database (MySQL)
 - **VM4**: Operations (Monitoring, Logs)
-
-## Documentation
-
-- [Deployment Guide](docs/deployment.md)
-- [Development Guide](docs/development.md)
-- [API Documentation](docs/api.md)
 
 ## Contributing
 
@@ -100,37 +90,9 @@ For production deployment across multiple VMs, see [deployment guide](docs/deplo
 2. Commit using Conventional Commits format
 3. Submit a merge request
 
-### Commit Format
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-Examples:
-- `feat(auth): add OAuth2 login`
-- `fix(api): handle database connection errors`
-- `docs(readme): update setup instructions`
-
 ## CI/CD Pipeline
 
 The project uses GitLab CI with automated:
 - Code testing
 - Build verification
 - Deployment to staging/production
-
-See [.gitlab-ci.yml](.gitlab-ci.yml) for pipeline configuration.
-
-## API Documentation
-
-Swagger API documentation available at `http://localhost:3000/swagger-stats/ui` when running locally.
-
-## License
-
-Proprietary - All rights reserved.
-
-## Support
-
-For issues and questions, please create an issue in the repository.

@@ -27,19 +27,6 @@ Centralized operations, monitoring, logging, and CI/CD infrastructure for the CI
 - **URL**: localhost:5000
 - **Configuration**: Self-hosted, no authentication by default
 
-### Prometheus
-- **Port**: 9090
-- **Purpose**: Metrics collection and monitoring
-- **URL**: http://localhost:9090
-- **Config**: `prometheus.yml`
-
-### Grafana
-- **Port**: 3001
-- **Purpose**: Metrics visualization and dashboards
-- **URL**: http://localhost:3001
-- **Default Credentials**: admin / admin
-- **Data Source**: Prometheus (http://prometheus:9090)
-
 ## Quick Start
 
 ```bash
@@ -78,19 +65,6 @@ docker tag myimage:latest localhost:5000/myimage:latest
 docker push localhost:5000/myimage:latest
 ```
 
-### Prometheus Monitoring
-
-Update `prometheus.yml` to add targets for monitoring:
-- API Server (vm2-api:9090)
-- Database Server (vm3-db:9104)
-- Web Server (vm1-web:9113)
-
-### Grafana Dashboards
-
-1. Login to Grafana (http://localhost:3001)
-2. Add Prometheus as data source
-3. Import pre-built dashboards or create custom ones
-
 ## Backup & Recovery
 
 ### GitLab Backup
@@ -122,20 +96,6 @@ docker-compose build --no-cache
 # Test registry connectivity
 curl http://localhost:5000/v2/
 ```
-
-### Prometheus not collecting metrics
-- Verify target addresses in `prometheus.yml`
-- Check firewall rules
-- Ensure monitoring agents are running on targets
-
-## Performance Considerations
-
-- Allocate at least 8GB RAM for this VM
-- Ensure sufficient disk space for:
-  - GitLab data: ~50GB
-  - Registry images: Variable
-  - Prometheus metrics: ~10GB
-  - Grafana: ~5GB
 
 ## References
 
