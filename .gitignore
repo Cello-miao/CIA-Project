@@ -2,25 +2,68 @@
 password.txt
 *.key
 *.pem
+*.cert
+*.crt
+secrets/
 .env
 .env.local
+.env.*.local
 
-# Node modules
+# Node modules & package managers
 node_modules/
+.npm
+.pnpm-debug.log
+package-lock.json
+yarn.lock
 
-# IDE
+# IDE & Editors
 .vscode/
 .idea/
-
-# OS
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
 .DS_Store
-Thumbs.db
+.editorconfig
 
-# Build artifacts
+# OS specific
+Thumbs.db
+*.tmp
+
+# Build artifacts & dist
 dist/
 build/
+*.tsbuildinfo
+out/
 
-# Logs
+# Test coverage
+coverage/
+.nyc_output/
+
+# Logs & debugging
 *.log
 npm-debug.log*
 yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.vscode-test
+.history/
+
+# Docker volumes
+mysql_data/
+postgres_data/
+
+# Temporary files
+temp/
+tmp/
+*.bak
+*.swp
+
+# IDE cache
+.eslintcache
+.stylelintcache
+
+# Runtime data
+pids/
+*.seed
+*.pid.lock
