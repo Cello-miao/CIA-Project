@@ -1,7 +1,7 @@
 import {validate} from 'class-validator';
 import {Request, Response} from 'express';
 import * as jwt from 'jsonwebtoken';
-import {getRepository} from 'typeorm';
+import { AppDataSource } from '../config/datasource';
 import config from '../config/config';
 import {User} from '../entity/User';
 
@@ -14,7 +14,7 @@ class AuthController {
     user.password = password;
     user.role = "NORMAL";
 
-    // Validade if the parameters are ok
+    // Validate if the parameters are ok
     const errors = await validate(user);
     if (errors.length > 0) {
       res.status(400).send(errors);
@@ -25,7 +25,7 @@ class AuthController {
     user.hashPassword();
 
     // Try to save. If fails, the username is already in use
-    const userRepository = getRepository(User);
+    const userRepository = AppDataSource.getRepository(User);
     try {
       await userRepository.save(user);
     } catch (e) {
@@ -41,25 +41,33 @@ class AuthController {
     const {username, password} = req.body;
     if (!(username && password)) {
       res.status(400).send('Body was empty');
+      return;
     }
+    
     // Get user from database
-    const userRepository = getRepository(User);
-    let user: User;
+    const userRepository = AppDataSource.getRepository(User);
+    let user: User | null;
     try {
-      user = await userRepository.findOneOrFail({
-        where: {username},
+      user = await userRepository.findOneBy({
+        username,
       });
     } catch (error) {
       res.status(401).send('username or password incorrect');
       return;
     }
+    
+    if (!user) {
+      res.status(401).send('username or password incorrect');
+      return;
+    }
+    
     // Check if encrypted password match
     if (!user.checkIfUnencryptedPasswordIsValid(password)) {
       res.status(401).send('username or password incorrect');
       return;
     }
 
-    // Sing JWT, valid for 1 hour
+    // Sign JWT, valid for 1 hour
     const token = jwt.sign(
       {userId: user.id, username: user.username},
       config.jwtSecret,
@@ -70,14 +78,21 @@ class AuthController {
 
   public static getMe = async (req: Request, res: Response) => {
     // Get user from database
-    const userRepository = getRepository(User);
-    let user: User;
+    const userRepository = AppDataSource.getRepository(User);
+    let user: User | null;
     try {
-      user = await userRepository.findOneOrFail({
-        select: ['id', 'username', 'role'],
-        where: {id: res.locals.jwtPayload.userId},
+      user = await userRepository.findOneBy({
+        id: res.locals.jwtPayload.userId,
       });
-      res.send({user});
+      
+      if (!user) {
+        res.status(404).send('User not found');
+        return;
+      }
+      
+      // Don't send password in response
+      const { password, ...userWithoutPassword } = user;
+      res.send({ user: userWithoutPassword });
     } catch (error) {
       res.status(404).send('User not found');
       return;
@@ -91,32 +106,39 @@ class AuthController {
     // Get parameters from the body
     const {oldPassword, newPassword} = req.body;
     if (!(oldPassword && newPassword)) {
-      res.status(400).send();
+      res.status(400).send('Old and new passwords are required');
+      return;
     }
 
     // Get user from the database
-    const userRepository = getRepository(User);
-    let user: User;
+    const userRepository = AppDataSource.getRepository(User);
+    let user: User | null;
     try {
-      user = await userRepository.findOneOrFail(id);
-    } catch (id) {
-      res.status(401).send();
+      user = await userRepository.findOneBy({ id });
+    } catch (error) {
+      res.status(401).send('Unauthorized');
+      return;
+    }
+    
+    if (!user) {
+      res.status(401).send('Unauthorized');
       return;
     }
 
-    // Check if old password matchs
+    // Check if old password matches
     if (!user.checkIfUnencryptedPasswordIsValid(oldPassword)) {
-      res.status(401).send();
+      res.status(401).send('Current password is incorrect');
       return;
     }
 
-    // Validate de model (password lenght)
+    // Validate the model (password length)
     user.password = newPassword;
     const errors = await validate(user);
     if (errors.length > 0) {
       res.status(400).send(errors);
       return;
     }
+    
     // Hash the new password and save
     user.hashPassword();
     await userRepository.save(user);

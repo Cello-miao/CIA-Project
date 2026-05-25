@@ -4,14 +4,13 @@ import {useDispatch, useSelector} from "react-redux";
 import {login} from "../../store/actions/account.actions";
 import TextInput from "../../common/components/TextInput";
 import Notifications from "../../common/components/Notification";
-import {Link, useHistory} from "react-router-dom";
-import useSession from "react-session-hook";
+import {Link, useNavigate} from "react-router-dom";
 import Cookies from "js-cookie";
 
 
 const Login: React.FC = () => {
   const dispatch: Dispatch<any> = useDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [formState, setFormState] = useState({
     email: { error: "", value: "" },
@@ -20,14 +19,12 @@ const Login: React.FC = () => {
 
 
   const state = useSelector((state: any) => state.account);
-  const session = useSession();
 
   useEffect(() => {
     if (state.email !== '') {
-      session.setSession({token: Cookies.get("token")});
-      history.push('/');
+      navigate('/');
     }
-  }, [state.email, history, session]);
+  }, [state.email, navigate]);
 
   function hasFormValueChanged(model: OnChangeModel): void {
     setFormState({ ...formState, [model.field]: { error: model.error, value: model.value } });

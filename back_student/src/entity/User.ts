@@ -1,5 +1,5 @@
 import  {compareSync, hashSync} from 'bcryptjs';
-import {IsNotEmpty, Length} from 'class-validator';
+import {IsNotEmpty, Length, IsEmail} from 'class-validator';
 import { Exclude } from 'class-transformer';
 import {
   Column,
@@ -23,7 +23,7 @@ export class User {
 
   @Column()
   @Exclude()
-  @Length(4, 100)
+  @Length(8, 100) // 增加最小密码长度以提高安全性
   public password: string;
 
   @Column()
@@ -39,7 +39,7 @@ export class User {
   public updatedAt: Date;
 
   public hashPassword() {
-    this.password = hashSync(this.password, 8);
+    this.password = hashSync(this.password, 12); // 增加bcrypt的salt rounds以提高安全性
   }
 
   public checkIfUnencryptedPasswordIsValid(unencryptedPassword: string) {

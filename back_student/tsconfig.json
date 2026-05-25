@@ -1,16 +1,24 @@
 {
    "compilerOptions": {
       "lib": [
-         "es5",
-         "es6"
+         "es2020",
+         "dom"
       ],
-      "target": "es5",
+      "target": "es2020",
       "module": "commonjs",
-      "moduleResolution": "node",
+      "moduleResolution": "node10",
+      "rootDir": "./src",
       "outDir": "./build",
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
       "sourceMap": true,
-      "strictPropertyInitialization": false
-   }
+      "strictPropertyInitialization": false,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "resolveJsonModule": true,
+      "ignoreDeprecations": "6.0"
+   },
+   "include": ["src/**/*"],
+   "exclude": ["node_modules", "build"]
 }

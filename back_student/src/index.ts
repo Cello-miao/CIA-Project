@@ -7,7 +7,7 @@ import 'reflect-metadata';
 import * as swaggerJSDoc from 'swagger-jsdoc';
 import * as swaggerStats from 'swagger-stats';
 import * as swaggerUi from 'swagger-ui-express';
-import {createConnection} from 'typeorm';
+import { AppDataSource } from './config/datasource';
 import routes from './routes';
 
 const options = {
@@ -24,32 +24,44 @@ const options = {
 };
 
 const specs = swaggerJSDoc(options);
-// Connects to the Database -> then starts the express
-createConnection()
-  .then(() => {
-    // Create a new express application instance
 
-    // Call midlewares
+// Connects to the Database -> then starts the express
+AppDataSource.initialize()
+  .then(() => {
+    console.log('Data Source has been initialized!');
+    
+    // Create a new express application instance
     const app = express();
+    
+    // Call middlewares
     app.use(cors());
     app.use(swaggerStats.getMiddleware({}));
     app.use(helmet());
     app.use(bodyParser.json());
-    morgan.token('header-auth', (req, res) => req.headers.auth);
-    morgan.token('body', (req, res) => req.body.toString());
-    app.use(morgan('[:date[web]] Started :method :url for :remote-addr', true));
-    app.use(morgan('[:date[web]] Started with token :header-auth', true));
-    app.use(morgan('[:date[web]] Started with body :body', true));
+    
+    // Morgan logging setup
+    morgan.token('header-auth', (req, res) => req.headers.auth as string);
+    morgan.token('body', (req, res) => JSON.stringify(req.body));
+    app.use(morgan('[:date[web]] Started :method :url for :remote-addr'));
+    app.use(morgan('[:date[web]] Started with token :header-auth'));
+    app.use(morgan('[:date[web]] Started with body :body'));
     app.use(
       morgan(
         '[:date[iso]] Completed :status :res[content-length] in :response-time ms',
       ),
     );
+    
     // Set all routes from routes folder
     app.use('/', routes);
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-    app.listen(3000, async () => {
+    
+    // Health check endpoint
+    app.get('/health', (req, res) => {
+      res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+    });
+    
+    app.listen(3000, () => {
       console.log('Server started on port 3000!');
     });
   })
-  .catch(e => console.log(e));
+  .catch((error) => console.log('Error during Data Source initialization:', error));

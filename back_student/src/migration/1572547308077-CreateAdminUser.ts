@@ -1,4 +1,5 @@
-import {getRepository, MigrationInterface, QueryRunner} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
+import { AppDataSource } from '../config/datasource';
 import {User} from '../entity/User';
 
 export class CreateAdminUser1572547308077 implements MigrationInterface {
@@ -8,9 +9,12 @@ export class CreateAdminUser1572547308077 implements MigrationInterface {
     user.password = 'admin';
     user.hashPassword();
     user.role = 'ADMIN';
-    const userRepository = getRepository(User);
+    const userRepository = AppDataSource.getRepository(User);
     await userRepository.save(user);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<any> {}
+  public async down(queryRunner: QueryRunner): Promise<any> {
+    const userRepository = AppDataSource.getRepository(User);
+    await userRepository.delete({ username: 'admin' });
+  }
 }

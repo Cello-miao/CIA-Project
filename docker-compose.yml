@@ -8,13 +8,16 @@ services:
     container_name: cia_db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-RootChangeMe@123}
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
       MYSQL_DATABASE: ${DB_NAME:-cia_db}
       MYSQL_USER: ${DB_USER:-cia_app}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-ChangeMe@123456}
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
       MYSQL_INITDB_SKIP_TZINFO: "yes"
     volumes:
       - db_data:/var/lib/mysql
+    secrets:
+      - db_root_password
+      - db_password
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
       interval: 10s
@@ -47,9 +50,12 @@ services:
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-cia_db}
       DB_USER: ${DB_USER:-cia_app}
-      DB_PASSWORD: ${DB_PASSWORD:-ChangeMe@123456}
-      JWT_SECRET: ${JWT_SECRET:-change-this-secret}
+      DB_PASSWORD_FILE: /run/secrets/db_password
+      JWT_SECRET_FILE: /run/secrets/jwt_secret
       LOG_LEVEL: ${LOG_LEVEL:-info}
+    secrets:
+      - db_password
+      - jwt_secret
     command: ["yarn", "prod"]
     ports:
       - "3000:3000"
@@ -115,3 +121,11 @@ volumes:
 networks:
   cia_network:
     driver: bridge
+
+secrets:
+  db_root_password:
+    file: ./secrets/db_root_password.txt
+  db_password:
+    file: ./secrets/db_password.txt
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt

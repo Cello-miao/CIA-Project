@@ -1,17 +1,20 @@
 import {validate} from 'class-validator';
 import {Request, Response} from 'express';
-import {getRepository} from 'typeorm';
+import { AppDataSource } from '../config/datasource';
 
 import {User} from '../entity/User';
 
 class UserController {
   public static listAll = async (req: Request, res: Response) => {
     // Get users from database
-    const userRepository = getRepository(User);
+    const userRepository = AppDataSource.getRepository(User);
     const users = await userRepository.find();
 
+    // Remove passwords before sending response
+    const usersWithoutPasswords = users.map(({ password, ...user }: any) => user);
+    
     // Send the users object
-    res.send(users);
+    res.send(usersWithoutPasswords);
   };
 
   public static getOneById = async (req: Request, res: Response) => {
@@ -19,13 +22,20 @@ class UserController {
     const id: number = parseInt(req.params.id, 10);
 
     // Get the user from database
-    const userRepository = getRepository(User);
+    const userRepository = AppDataSource.getRepository(User);
     try {
-      const user = await userRepository.findOneOrFail(id, {
-        relations: ['jpo', 'prospection'],
-        select: ['id', 'username', 'role'], // We dont want to send the password on response
+      const user = await userRepository.findOneBy({
+        id,
       });
-      res.status(200).send(user);
+      
+      if (!user) {
+        res.status(404).send('User not found');
+        return;
+      }
+      
+      // Don't send password in response
+      const { password, ...userWithoutPassword } = user;
+      res.status(200).send(userWithoutPassword);
     } catch (error) {
       res.status(404).send('User not found');
     }
@@ -43,7 +53,7 @@ class UserController {
     }
     user.role = role;
 
-    // Validade if the parameters are ok
+    // Validate if the parameters are ok
     const errors = await validate(user);
     if (errors.length > 0) {
       res.status(400).send(errors);
@@ -54,7 +64,7 @@ class UserController {
     user.hashPassword();
 
     // Try to save. If fails, the username is already in use
-    const userRepository = getRepository(User);
+    const userRepository = AppDataSource.getRepository(User);
     try {
       await userRepository.save(user);
     } catch (e) {
@@ -74,12 +84,17 @@ class UserController {
     const {username, role} = req.body;
 
     // Try to find user on database
-    const userRepository = getRepository(User);
+    const userRepository = AppDataSource.getRepository(User);
     let user;
     try {
-      user = await userRepository.findOneOrFail(id);
+      user = await userRepository.findOneBy({ id: parseInt(id, 10) });
     } catch (error) {
       // If not found, send a 404 response
+      res.status(404).send('User not found');
+      return;
+    }
+    
+    if (!user) {
       res.status(404).send('User not found');
       return;
     }
@@ -93,7 +108,7 @@ class UserController {
       return;
     }
 
-    // Try to safe, if fails, that means username already in use
+    // Try to save, if fails, that means username already in use
     try {
       await userRepository.save(user);
     } catch (e) {
@@ -108,9 +123,13 @@ class UserController {
     // Get the ID from the url
     const id = req.params.id;
 
-    const userRepository = getRepository(User);
+    const userRepository = AppDataSource.getRepository(User);
     try {
-      await userRepository.findOneOrFail(id);
+      const user = await userRepository.findOneBy({ id: parseInt(id, 10) });
+      if (!user) {
+        res.status(404).send('User not found');
+        return;
+      }
       await userRepository.delete(id);
     } catch (error) {
       res.status(404).send('User not found');

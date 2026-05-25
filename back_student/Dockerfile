@@ -8,7 +8,10 @@ COPY . .
 
 RUN yarn install
 
-
 EXPOSE 3000
-CMD ["yarn", "migration:start"]
-CMD ["yarn", "start"]
+
+# 生产环境使用以下命令
+# CMD ["yarn", "prod"]
+
+# 开发环境使用以下命令（包含migration）
+CMD ["sh", "-c", "yarn migration:start && yarn start"]
