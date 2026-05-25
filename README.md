@@ -1,6 +1,6 @@
 # CIA Project
 
-A full-stack web application with React frontend and Node.js/Express backend.
+A full-stack web application with React frontend and Node.js/Express backend, deployed on a single AWS EC2 instance.
 
 ## Project Structure
 
@@ -8,17 +8,10 @@ A full-stack web application with React frontend and Node.js/Express backend.
 cia-project/
 ├── front_student/           React frontend (TypeScript)
 ├── back_student/            Express backend (TypeORM)
-├── deploy/                  Production deployment configs
-│   ├── vm1-web/            Nginx frontend server
-│   ├── vm2-api/            Node.js API server
-│   ├── vm3-db/             MySQL database server
-│   └── vm4-ops/            Monitoring & operations
-├── scripts/                 Build and deployment scripts
 ├── docs/                    Documentation
-│   ├── deployment.md       Deployment guide
-│   ├── development.md      Development guide
-│   └── api.md              API documentation
-├── .gitlab-ci.yml          CI/CD pipeline
+│   └── deployment.md        Single EC2 deployment guide
+├── docker-compose.yml       Single-server deployment stack
+├── .env.example             Environment configuration template
 ├── .gitignore              Git ignore rules
 └── README.md               This file
 ```
@@ -32,31 +25,37 @@ cia-project/
 
 ### Local Development
 
-1. **Setup**
+1. **Install Dependencies**
    ```bash
-   chmod +x scripts/setup.sh
-   ./scripts/setup.sh
+   # Backend
+   cd back_student && npm install && cd ..
+   
+   # Frontend
+   cd front_student && npm install && cd ..
    ```
 
-2. **Start Development**
+2. **Start with Docker Compose**
    ```bash
-   chmod +x scripts/dev.sh
-   ./scripts/dev.sh
+   docker-compose up -d
    ```
 
 3. **Access the Application**
-   - Frontend: http://localhost:3001
+   - Frontend: http://localhost:80
    - Backend API: http://localhost:3000
    - Login: admin / admin
+
+### Single EC2 Deployment
+
+The production deployment runs the frontend, API, and MySQL database on one AWS EC2 instance through the root `docker-compose.yml` file. See [docs/deployment.md](docs/deployment.md) for the complete deployment guide and security checklist.
 
 ## Features
 
 - **Frontend**: React 16 with Redux state management
 - **Backend**: Express.js with TypeORM
-- **Database**: MySQL with auto-migrations
+- **Database**: MySQL 8.0 with auto-migrations
 - **API**: RESTful API with JWT authentication
-- **Monitoring**: Prometheus & ELK stack ready
-- **CI/CD**: GitLab CI pipeline configured
+- **Monitoring**: Health checks and log rotation
+- **Deployment**: Single EC2 Docker Compose stack
 
 ## Development
 
@@ -64,7 +63,7 @@ cia-project/
 ```bash
 cd front_student
 npm install
-npm start      # Development server at :3001
+npm start      # Development server
 npm test       # Run tests
 npm build      # Production build
 ```
@@ -79,20 +78,23 @@ npm run build  # TypeScript compilation
 ```
 
 ### Architecture
-- **VM1**: Frontend (Nginx)
-- **VM2**: API (Node.js + PM2)
-- **VM3**: Database (MySQL)
-- **VM4**: Operations (Monitoring, Logs)
+- **One EC2 Instance**: Frontend, API, and MySQL in a single Docker network
+- **Frontend**: Static React build served by Nginx on port 80
+- **API**: Express app compiled and started in production mode on port 3000
+- **Database**: MySQL 8.0 with a persistent Docker volume (internal only)
+
+## Security Features
+
+- Containers run with `no-new-privileges` security option
+- All Linux capabilities dropped
+- Database not exposed to external network
+- Environment-based configuration for secrets
+- Health checks for all services
+- Automatic log rotation
+- Auto-restart on failure
 
 ## Contributing
 
 1. Create a new branch for your feature
 2. Commit using Conventional Commits format
 3. Submit a merge request
-
-## CI/CD Pipeline
-
-The project uses GitLab CI with automated:
-- Code testing
-- Build verification
-- Deployment to staging/production

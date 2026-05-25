@@ -1,44 +1,116 @@
+# Single EC2 Instance Deployment for CIA Project
+# All services (Frontend, API, Database) run on one EC2 instance
 version: '3.8'
 
 services:
   db:
-    image: mysql:5.7
+    image: mysql:8.0
     container_name: cia_db
-    ports:
-      - "3306:3306"
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: dev_db
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-RootChangeMe@123}
+      MYSQL_DATABASE: ${DB_NAME:-cia_db}
+      MYSQL_USER: ${DB_USER:-cia_app}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-ChangeMe@123456}
+      MYSQL_INITDB_SKIP_TZINFO: "yes"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - cia_network
 
   api:
-    image: node:16
-    container_name: cia_api
     build:
       context: ./back_student
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-      - "9229:9229"
+    container_name: cia_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       DB_HOST: db
       DB_PORT: 3306
-      DB_USER: root
-      DB_PASSWORD: root
-      DB_NAME: dev_db
-    depends_on:
-      - db
+      DB_NAME: ${DB_NAME:-cia_db}
+      DB_USER: ${DB_USER:-cia_app}
+      DB_PASSWORD: ${DB_PASSWORD:-ChangeMe@123456}
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    command: ["yarn", "prod"]
+    ports:
+      - "3000:3000"
     volumes:
-      - ./back_student:/usr/src/app
+      - api_logs:/usr/src/app/logs
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"require('http').get('http://127.0.0.1:3000/health', res => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - cia_network
+
+  frontend:
+    build:
+      context: ./front_student
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-localhost:3000}
+    container_name: cia_frontend
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - cia_network
 
 volumes:
-  mysql_data:
+  db_data:
+  api_logs:
 
 networks:
   cia_network:
