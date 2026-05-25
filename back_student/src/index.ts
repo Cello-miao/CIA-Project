@@ -5,7 +5,9 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import 'reflect-metadata';
 import swaggerJSDoc from 'swagger-jsdoc';
+// @ts-ignore
 import swaggerStats from 'swagger-stats';
+// @ts-ignore
 import swaggerUi from 'swagger-ui-express';
 import { AppDataSource } from './config/datasource';
 import routes from './routes';
