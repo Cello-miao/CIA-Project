@@ -52,6 +52,7 @@ services:
       DB_USER: ${DB_USER:-cia_app}
       DB_PASSWORD_FILE: /run/secrets/db_password
       JWT_SECRET_FILE: /run/secrets/jwt_secret
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     secrets:
       - db_password

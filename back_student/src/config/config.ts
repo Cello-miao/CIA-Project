@@ -15,6 +15,6 @@ export default {
   jwtSecret: getSecret(
     process.env.JWT_SECRET_FILE,
     process.env.JWT_SECRET,
-    '@QEGTUI'
+    '' // 移除默认值，强制配置密钥
   ),
 };

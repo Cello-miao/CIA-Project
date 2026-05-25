@@ -39,12 +39,18 @@ AppDataSource.initialize()
     app.use(helmet());
     app.use(bodyParser.json());
     
-    // Morgan logging setup
-    morgan.token('header-auth', (req, res) => req.headers.auth as string);
-    morgan.token('body', (req, res) => JSON.stringify(req.body));
+    // Morgan logging setup - 安全配置：不记录敏感信息
+    morgan.token('body-safe', (req, res) => {
+      // 过滤掉敏感字段
+      const safeBody = { ...req.body };
+      if (safeBody.password) safeBody.password = '[REDACTED]';
+      if (safeBody.oldPassword) safeBody.oldPassword = '[REDACTED]';
+      if (safeBody.newPassword) safeBody.newPassword = '[REDACTED]';
+      return JSON.stringify(safeBody);
+    });
+    
     app.use(morgan('[:date[web]] Started :method :url for :remote-addr'));
-    app.use(morgan('[:date[web]] Started with token :header-auth'));
-    app.use(morgan('[:date[web]] Started with body :body'));
+    // 不再记录 token 和完整请求体，避免泄露敏感信息
     app.use(
       morgan(
         '[:date[iso]] Completed :status :res[content-length] in :response-time ms',
