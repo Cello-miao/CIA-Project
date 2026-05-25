@@ -2,13 +2,11 @@ import React, { useState, Dispatch } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../store/actions/account.actions";
 import { IStateType } from "../../store/models/root.interface";
-import useSession from 'react-session-hook';
 
 function TopMenuAccount(): JSX.Element {
     const dispatch: Dispatch<any> = useDispatch();
     const email: string = useSelector((state: IStateType) => state.account.email);
     const [isShow, setShow] = useState(false);
-    const session = useSession();
 
     return (
 
@@ -33,7 +31,6 @@ function TopMenuAccount(): JSX.Element {
                 <a className="dropdown-item"
                    onClick={() => {
                        dispatch(logout());
-                       session.removeSession();
                    }}
                    href="# "
                    data-toggle="modal"

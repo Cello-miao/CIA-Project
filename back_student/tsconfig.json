@@ -6,7 +6,7 @@
       ],
       "target": "es2020",
       "module": "commonjs",
-      "moduleResolution": "node10",
+      "moduleResolution": "node",
       "rootDir": "./src",
       "outDir": "./build",
       "emitDecoratorMetadata": true,
@@ -16,8 +16,7 @@
       "esModuleInterop": true,
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
-      "resolveJsonModule": true,
-      "ignoreDeprecations": "6.0"
+      "resolveJsonModule": true
    },
    "include": ["src/**/*"],
    "exclude": ["node_modules", "build"]

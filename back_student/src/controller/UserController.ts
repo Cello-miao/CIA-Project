@@ -19,7 +19,7 @@ class UserController {
 
   public static getOneById = async (req: Request, res: Response) => {
     // Get the ID from the url
-    const id: number = parseInt(req.params.id, 10);
+    const id: number = parseInt(req.params.id as string, 10);
 
     // Get the user from database
     const userRepository = AppDataSource.getRepository(User);
@@ -87,7 +87,7 @@ class UserController {
     const userRepository = AppDataSource.getRepository(User);
     let user;
     try {
-      user = await userRepository.findOneBy({ id: parseInt(id, 10) });
+      user = await userRepository.findOneBy({ id: parseInt(id as string, 10) });
     } catch (error) {
       // If not found, send a 404 response
       res.status(404).send('User not found');
@@ -125,7 +125,7 @@ class UserController {
 
     const userRepository = AppDataSource.getRepository(User);
     try {
-      const user = await userRepository.findOneBy({ id: parseInt(id, 10) });
+      const user = await userRepository.findOneBy({ id: parseInt(id as string, 10) });
       if (!user) {
         res.status(404).send('User not found');
         return;

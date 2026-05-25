@@ -1,12 +1,12 @@
-import * as bodyParser from 'body-parser';
-import * as cors from 'cors';
-import * as express from 'express';
-import * as helmet from 'helmet';
-import * as morgan from 'morgan';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import express from 'express';
+import helmet from 'helmet';
+import morgan from 'morgan';
 import 'reflect-metadata';
-import * as swaggerJSDoc from 'swagger-jsdoc';
-import * as swaggerStats from 'swagger-stats';
-import * as swaggerUi from 'swagger-ui-express';
+import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerStats from 'swagger-stats';
+import swaggerUi from 'swagger-ui-express';
 import { AppDataSource } from './config/datasource';
 import routes from './routes';
 
@@ -40,7 +40,7 @@ AppDataSource.initialize()
     app.use(bodyParser.json());
     
     // Morgan logging setup - 安全配置：不记录敏感信息
-    morgan.token('body-safe', (req, res) => {
+    morgan.token('body-safe', (req: any, res: any) => {
       // 过滤掉敏感字段
       const safeBody = { ...req.body };
       if (safeBody.password) safeBody.password = '[REDACTED]';
@@ -62,7 +62,7 @@ AppDataSource.initialize()
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
     
     // Health check endpoint
-    app.get('/health', (req, res) => {
+    app.get('/health', (req: any, res: any) => {
       res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
     });
     
@@ -70,4 +70,4 @@ AppDataSource.initialize()
       console.log('Server started on port 3000!');
     });
   })
-  .catch((error) => console.log('Error during Data Source initialization:', error));
+  .catch((error: any) => console.log('Error during Data Source initialization:', error));

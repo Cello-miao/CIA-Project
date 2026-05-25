@@ -22,7 +22,7 @@ export function me(): any {
                 }
             });
             return dispatch({type: LOG_IN, email: response.data.username});
-        } catch (e) {
+        } catch (e: any) {
             if (e.response === undefined) {
                 return dispatch(addNotification("Error", e.message));
             }
@@ -42,7 +42,7 @@ export function login(email: string, password: string): any {
             });
             Cookies.set('token', response.data.token);
             return dispatch({type: LOG_IN, email: email});
-        } catch (e) {
+        } catch (e: any) {
             if (e.response === undefined) {
                 return dispatch(addNotification("Error", e.message));
             }
@@ -62,7 +62,7 @@ export function register(email: string, password: string): any {
 
             dispatch(addNotification("Success", response.data));
             return dispatch({type: REGISTER});
-        } catch (e) {
+        } catch (e: any) {
             if (e.response === undefined) {
                 return dispatch(addNotification("Error", e.message));
             }
