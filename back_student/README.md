@@ -30,8 +30,8 @@ import {User} from "../entity/User";
 ## Step for launch the api
 
 1. Run `docker-compose build  && docker-compose up -d` command
-2. Api will be available on  `localhost:3000`
-3. Api logs will be avaible on  `http://localhost:3000/swagger-stats/ui`
+2. Api will be available on  `localhost:3001`
+3. Api logs will be avaible on  `http://localhost:3001/swagger-stats/ui`
 
 
 

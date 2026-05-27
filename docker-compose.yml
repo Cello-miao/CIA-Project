@@ -1,0 +1,139 @@
+################################################################################
+# Hardened production docker-compose.yml
+# - ZERO hardcoded secrets: all secrets and credentials map to environment vars
+# - Isolated bridge network: cia-net
+# - cia-db: MySQL 8.0 with native healthcheck
+# - cia-api: built from ./back_student and runs as non-root via UID/GID mapping
+# - cia-web: built from ./front_student and exposes port 80
+################################################################################
+
+services:
+  cia-db:
+    image: mysql:8.0
+    container_name: cia-db
+    restart: unless-stopped
+    command: ["mysqld", "--default-authentication-plugin=mysql_native_password"]
+    env_file: .env
+    environment:
+      # All sensitive values must come from host env (.env file) and not be hardcoded here
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql:rw
+    networks:
+      - cia-net
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -p\"${MYSQL_ROOT_PASSWORD}\" -h localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  cia-api:
+    build:
+      context: ./back_student
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    image: ${CIA_API_IMAGE:-cia-api:local}
+    container_name: cia-api
+    restart: unless-stopped
+    env_file: .env
+    # Run the backend process as a non-root user by mapping host UID/GID for 'service-web'
+    # Populate SERVICE_USER_UID and SERVICE_USER_GID in your host .env to match the service-web user
+    user: "${SERVICE_USER_UID}:${SERVICE_USER_GID}"
+    depends_on:
+      cia-db:
+        condition: service_healthy
+    environment:
+      # Database connectivity
+      DB_HOST: cia-db
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      DB_NAME: ${MYSQL_DATABASE}
+
+      # Standard production-style connection string (optional, if your app uses it)
+      DATABASE_URL: ${DATABASE_URL}
+
+      # App secrets (must be set on host)
+      JWT_SECRET: ${JWT_SECRET}
+      BCRYPT_SALT_ROUNDS: ${BCRYPT_SALT_ROUNDS}
+      NODE_ENV: production
+      API_INTERNAL_PORT: ${API_INTERNAL_PORT:-3001}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost,http://localhost:80,http://localhost:8080}
+
+      # Admin seed (first migration)
+      DEFAULT_ADMIN_USERNAME: ${DEFAULT_ADMIN_USERNAME}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD}
+      DEFAULT_ADMIN_ROLE: ${DEFAULT_ADMIN_ROLE:-ADMIN}
+
+    ports:
+      - "${API_INTERNAL_PORT:-3001}:${API_INTERNAL_PORT:-3001}"
+    networks:
+      - cia-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:${API_INTERNAL_PORT:-3001}/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  cia-web:
+    build:
+      context: ./front_student
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:3001}
+    image: ${CIA_WEB_IMAGE:-cia-web:local}
+    container_name: cia-web
+    restart: unless-stopped
+    env_file: .env
+    # The frontend needs to reach the API; use an env variable to wire the correct URL
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL}
+      NODE_ENV: production
+    ports:
+      - "${WEB_HOST_PORT:-80}:80"
+    depends_on:
+      cia-api:
+        condition: service_healthy
+    networks:
+      - cia-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  db_data:
+    name: cia_db_data
+
+networks:
+  cia-net:
+    driver: bridge
+
+# Notes:
+# - This compose file intentionally references only environment variables. Create a host .env file
+#   (see .env) and keep it out of version control. Never commit secrets.
+# - The depends_on condition: service_healthy is supported by docker-compose (CLI). If you deploy
+#   with swarm (docker stack deploy) this behavior is not available; use an init/wait-for-db pattern
+#   in the application container or an init container to gate startup instead.
+# - The 'user' mapping for cia-api requires you to set SERVICE_USER_UID and SERVICE_USER_GID in your
+#   .env to match the host 'service-web' account created for non-root deploys.
