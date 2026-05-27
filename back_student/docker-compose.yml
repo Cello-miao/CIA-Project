@@ -24,7 +24,7 @@ services:
     environment:
       DB_HOST: db
     ports:
-      - "3000:3000"
+      - "3001:3001"
     networks:
       - backend
     depends_on: # set a dependency between your service and the database: this means that your application will not run if the db service is not running, but it doesn't assure you that the dabase will be ready to accept incoming connection (so your application could crash untill the db initializes itself)

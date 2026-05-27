@@ -47,8 +47,10 @@
    },
    "scripts": {
       "tsc": "tsc",
-      "start": "set debug=* && ts-node-dev --respawn --inspect --transpileOnly ./src/index.ts",
-      "prod": "tsc && node ./build/index.js",
+      "build": "tsc",
+      "dev": "DEBUG=* ts-node-dev --respawn --inspect --transpileOnly ./src/index.ts",
+      "start": "node ./build/index.js",
+      "prod": "node ./build/index.js",
       "schema:drop": "ts-node ./node_modules/typeorm/cli.js schema:drop",
       "schema:sync": "ts-node ./node_modules/typeorm/cli.js schema:sync",
       "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run",
