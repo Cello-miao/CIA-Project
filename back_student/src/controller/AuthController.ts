@@ -40,7 +40,7 @@ class AuthController {
   public static login = async (req: Request, res: Response) => {
     const {username, password} = req.body;
     if (!(username && password)) {
-      res.status(400).send('Body was empty');
+      return res.status(400).send('Invalid request body');
     }
     // Get user from database
     const userRepository = getRepository(User);
@@ -77,7 +77,7 @@ class AuthController {
         select: ['id', 'username', 'role'],
         where: {id: res.locals.jwtPayload.userId},
       });
-      res.send({user});
+      res.send(user);
     } catch (error) {
       res.status(404).send('User not found');
       return;
@@ -91,7 +91,7 @@ class AuthController {
     // Get parameters from the body
     const {oldPassword, newPassword} = req.body;
     if (!(oldPassword && newPassword)) {
-      res.status(400).send();
+      return res.status(400).send('Invalid request body');
     }
 
     // Get user from the database
