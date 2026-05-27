@@ -1,6 +1,6 @@
-import  {compareSync, hashSync} from 'bcryptjs';
+import {compareSync, hashSync} from 'bcryptjs';
+import {Exclude} from 'class-transformer';
 import {IsNotEmpty, Length} from 'class-validator';
-import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -9,6 +9,7 @@ import {
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
+import config from '../config/config';
 
 @Entity()
 @Unique(['username'])
@@ -30,16 +31,14 @@ export class User {
   @IsNotEmpty()
   public role: string;
 
-  @Column()
   @CreateDateColumn()
   public createdAt: Date;
 
-  @Column()
   @UpdateDateColumn()
   public updatedAt: Date;
 
   public hashPassword() {
-    this.password = hashSync(this.password, 8);
+    this.password = hashSync(this.password, config.bcryptSaltRounds);
   }
 
   public checkIfUnencryptedPasswordIsValid(unencryptedPassword: string) {
