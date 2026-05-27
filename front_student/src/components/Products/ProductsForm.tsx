@@ -55,7 +55,7 @@ const ProductForm: React.FC = () => {
         category: formState.category.value
       }));
 
-      dispatch(addNotification("Product edited", `Product ${formState.name.value} edited by you`));
+      dispatch(addNotification(isCreate ? "Product created" : "Product edited", `Product ${formState.name.value} ${isCreate ? "created" : "edited"} by you`));
       dispatch(clearSelectedProduct());
       dispatch(setModificationState(ProductModificationStatus.None));
     }

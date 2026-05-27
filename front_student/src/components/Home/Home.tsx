@@ -1,4 +1,4 @@
-import React, { Fragment, Dispatch } from "react";
+import React, { Fragment, Dispatch, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { updateCurrentPath } from "../../store/actions/root.actions";
 import TopCard from "../../common/components/TopCard";
@@ -6,6 +6,8 @@ import { IProductState, IStateType } from "../../store/models/root.interface";
 import ProductList from "../Products/ProductsList";
 import { IOrder } from "../../store/models/order.interface";
 import OrderList from "../Orders/OrderList";
+import { loadProducts } from "../../store/actions/products.action";
+import { loadOrders } from "../../store/actions/orders.actions";
 
 const Home: React.FC = () => {
   const products: IProductState = useSelector((state: IStateType) => state.products);
@@ -18,7 +20,12 @@ const Home: React.FC = () => {
   const totalOrderAmount: number = orders.reduce((prev, next) => prev + next.amount, 0);
 
   const dispatch: Dispatch<any> = useDispatch();
-  dispatch(updateCurrentPath("home", ""));
+
+  useEffect(() => {
+    dispatch(updateCurrentPath("home", ""));
+    dispatch(loadProducts());
+    dispatch(loadOrders());
+  }, [dispatch]);
 
   return (
     <Fragment>

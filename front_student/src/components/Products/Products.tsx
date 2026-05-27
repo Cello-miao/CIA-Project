@@ -5,17 +5,16 @@ import TopCard from "../../common/components/TopCard";
 import "./Products.css";
 import { useDispatch, useSelector } from "react-redux";
 import { updateCurrentPath } from "../../store/actions/root.actions";
-import { IProductState, IStateType, IRootPageStateType } from "../../store/models/root.interface";
+import { IProductState, IStateType } from "../../store/models/root.interface";
 import Popup from "reactjs-popup";
 import { removeProduct, clearSelectedProduct, setModificationState,
-  changeSelectedProduct } from "../../store/actions/products.action";
+  changeSelectedProduct, loadProducts } from "../../store/actions/products.action";
 import { addNotification } from "../../store/actions/notifications.action";
 import { ProductModificationStatus, IProduct } from "../../store/models/product.interface";
 
 const Products: React.FC = () => {
   const dispatch: Dispatch<any> = useDispatch();
   const products: IProductState = useSelector((state: IStateType) => state.products);
-  const path: IRootPageStateType = useSelector((state: IStateType) => state.root.page);
   const numberItemsCount: number = products.products.length;
   const totalPrice: number = products.products.reduce((prev, next) => prev + ((next.price * next.amount) || 0), 0);
   const totalAmount: number = products.products.reduce((prev, next) => prev + (next.amount || 0), 0);
@@ -23,8 +22,10 @@ const Products: React.FC = () => {
 
   useEffect(() => {
     dispatch(clearSelectedProduct());
+    dispatch(setModificationState(ProductModificationStatus.None));
+    dispatch(loadProducts());
     dispatch(updateCurrentPath("products", "list"));
-  }, [path.area, dispatch]);
+  }, [dispatch]);
 
   function onProductSelect(product: IProduct): void {
     dispatch(changeSelectedProduct(product));
