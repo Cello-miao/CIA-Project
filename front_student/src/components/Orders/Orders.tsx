@@ -1,4 +1,4 @@
-import React, { Fragment, Dispatch } from "react";
+import React, { Fragment, Dispatch, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { updateCurrentPath } from "../../store/actions/root.actions";
 import { IOrder } from "../../store/models/order.interface";
@@ -7,16 +7,22 @@ import TopCard from "../../common/components/TopCard";
 import OrderForm from "./OrderForm";
 import ProductList from "../Products/ProductsList";
 import { IProduct } from "../../store/models/product.interface";
-import { changeSelectedProduct, clearSelectedProduct } from "../../store/actions/products.action";
+import { changeSelectedProduct, clearSelectedProduct, loadProducts } from "../../store/actions/products.action";
 import { IStateType } from "../../store/models/root.interface";
+import { loadOrders } from "../../store/actions/orders.actions";
 
 const Orders: React.FC = () => {
     const dispatch: Dispatch<any> = useDispatch();
     const orders: IOrder[] = useSelector((state: IStateType) => state.orders.orders);
     const totalSales: number = orders.reduce((prev, next) => prev + next.totalPrice, 0);
     const totalAmount: number = orders.reduce((prev, next) => prev + next.amount, 0);
-    dispatch(updateCurrentPath("orders", "list"));
-    dispatch(clearSelectedProduct());
+
+    useEffect(() => {
+        dispatch(updateCurrentPath("orders", "list"));
+        dispatch(clearSelectedProduct());
+        dispatch(loadOrders());
+        dispatch(loadProducts());
+    }, [dispatch]);
 
     function selectProduct(product: IProduct): void {
         dispatch(changeSelectedProduct(product));
