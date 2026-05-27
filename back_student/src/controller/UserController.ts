@@ -6,12 +6,13 @@ import {User} from '../entity/User';
 
 class UserController {
   public static listAll = async (req: Request, res: Response) => {
-    // Get users from database
-    const userRepository = getRepository(User);
-    const users = await userRepository.find();
-
-    // Send the users object
-    res.send(users);
+    try {
+      const userRepository = getRepository(User);
+      const users = await userRepository.find({select: ['id', 'username', 'role', 'createdAt', 'updatedAt']});
+      res.send(users);
+    } catch (_error) {
+      res.status(500).send('Unable to load users');
+    }
   };
 
   public static getOneById = async (req: Request, res: Response) => {
@@ -22,8 +23,7 @@ class UserController {
     const userRepository = getRepository(User);
     try {
       const user = await userRepository.findOneOrFail(id, {
-        relations: ['jpo', 'prospection'],
-        select: ['id', 'username', 'role'], // We dont want to send the password on response
+        select: ['id', 'username', 'role', 'createdAt', 'updatedAt'],
       });
       res.status(200).send(user);
     } catch (error) {
