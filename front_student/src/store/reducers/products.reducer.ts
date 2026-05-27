@@ -1,6 +1,6 @@
 import { IProductState, IActionBase } from "../models/root.interface";
 import { ADD_PRODUCT, CHANGE_PRODUCT_PENDING_EDIT, EDIT_PRODUCT, REMOVE_PRODUCT,
-    CLEAR_PRODUCT_PENDING_EDIT, SET_MODIFICATION_STATE, CHANGE_PRODUCT_AMOUNT} from "../actions/products.action";
+    CLEAR_PRODUCT_PENDING_EDIT, SET_MODIFICATION_STATE, CHANGE_PRODUCT_AMOUNT, SET_PRODUCTS} from "../actions/products.action";
 import { IProduct, ProductModificationStatus } from "../models/product.interface";
 
 
@@ -60,6 +60,9 @@ function productsReducer(state: IProductState = initialState, action: IActionBas
             let products: IProduct[] = state.products;
             products[foundIndex].amount = products[foundIndex].amount - action.amount;
             return { ...state, products: products };
+        }
+        case SET_PRODUCTS: {
+            return { ...state, products: action.products };
         }
         default:
             return state;
