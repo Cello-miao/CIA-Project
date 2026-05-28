@@ -29,57 +29,80 @@ const options = {
 };
 
 const specs = swaggerJSDoc(options);
-// Connects to the Database -> then starts the express
-createConnection()
-  .then(() => {
-    if (!config.jwtSecret) {
-      throw new Error('Missing required environment variable: JWT_SECRET');
+
+// Database connection with retry logic for Render deployment
+async function startServer() {
+  const maxRetries = 30; // 30 retries * 2 seconds = 60 seconds max wait
+  let retries = 0;
+
+  while (retries < maxRetries) {
+    try {
+      console.log(`Attempting database connection (attempt ${retries + 1}/${maxRetries})...`);
+      await createConnection();
+      console.log('Database connection successful!');
+      break;
+    } catch (error) {
+      retries++;
+      if (retries >= maxRetries) {
+        console.error('Failed to connect to database after max retries');
+        throw error;
+      }
+      console.warn(`Database connection failed, retrying in 2 seconds... (${retries}/${maxRetries})`);
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
     }
+  }
 
-    const app = express();
-    app.disable('x-powered-by');
+  // Connects to the Database -> then starts the express
+  if (!config.jwtSecret) {
+    throw new Error('Missing required environment variable: JWT_SECRET');
+  }
 
-    // Support commas for multiple origins, or fall back to localhost during development
-    const allowedOrigins = process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(',')
-          .map((origin: string) => origin.trim())
-          .filter(Boolean)
-      : ['http://localhost', 'http://localhost:80', 'http://localhost:8080'];
+  const app = express();
+  app.disable('x-powered-by');
 
-    app.use(
-      cors({
-        origin: allowedOrigins,
-        methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-        credentials: true,
-        allowedHeaders: ['Content-Type', 'Accept', 'Authorization', 'auth'],
-      }),
-    );
+  // Support commas for multiple origins, or fall back to localhost during development
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+        .map((origin: string) => origin.trim())
+        .filter(Boolean)
+    : ['http://localhost', 'http://localhost:80', 'http://localhost:8080'];
 
-    app.use(swaggerStats.getMiddleware({}));
-    app.use(helmet());
-    app.use(bodyParser.json());
-    app.use(morgan('combined'));
-    const apiPort = Number(process.env.API_INTERNAL_PORT || 3001);
-    app.get('/health', (_req, res) => {
-      res.status(200).send({status: 'ok'});
-    });
-    app.get('/api/health', (_req, res) => {
-      res.status(200).send({status: 'ok'});
-    });
-    // Set all routes from routes folder
-    app.use('/', routes);
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-    app.listen(apiPort, async () => {
-      console.info(`API server is ready on port ${apiPort}`);
-    });
-  })
-  .catch((error) => {
-    console.error('Failed to start API server:', error);
-    if (error.message) {
-      console.error('Error message:', error.message);
-    }
-    if (error.stack) {
-      console.error('Stack trace:', error.stack);
-    }
-    process.exit(1);
+  app.use(
+    cors({
+      origin: allowedOrigins,
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+      credentials: true,
+      allowedHeaders: ['Content-Type', 'Accept', 'Authorization', 'auth'],
+    }),
+  );
+
+  app.use(swaggerStats.getMiddleware({}));
+  app.use(helmet());
+  app.use(bodyParser.json());
+  app.use(morgan('combined'));
+  const apiPort = Number(process.env.API_INTERNAL_PORT || 3001);
+  app.get('/health', (_req, res) => {
+    res.status(200).send({status: 'ok'});
   });
+  app.get('/api/health', (_req, res) => {
+    res.status(200).send({status: 'ok'});
+  });
+  // Set all routes from routes folder
+  app.use('/', routes);
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+  app.listen(apiPort, async () => {
+    console.info(`API server is ready on port ${apiPort}`);
+  });
+}
+
+// Call startServer and handle errors
+startServer().catch((error) => {
+  console.error('Failed to start API server:', error);
+  if (error.message) {
+    console.error('Error message:', error.message);
+  }
+  if (error.stack) {
+    console.error('Stack trace:', error.stack);
+  }
+  process.exit(1);
+});
