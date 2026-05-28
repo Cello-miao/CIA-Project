@@ -26,6 +26,8 @@ jobs:
           yarn build
 
       - name: Test Frontend Compilations
+        env:
+          NODE_OPTIONS: --openssl-legacy-provider
         run: |
           cd front_student
           npm ci --ignore-scripts
