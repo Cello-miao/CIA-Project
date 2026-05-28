@@ -2,8 +2,8 @@ services:
   - type: web
     name: cia-backend-api
     runtime: node
-    repo: https://github.com/EngrAhmadofficial/CIA-Project
-    branch: ahmad
+    repo: https://gitlab.com/cello-miao-group/CIA-Project.git
+    branch: xinxin
     rootDir: back_student
     buildCommand: yarn install --frozen-lockfile && yarn build
     startCommand: node build/index.js
@@ -22,8 +22,8 @@ services:
   - type: web
     name: cia-frontend-web
     runtime: static
-    repo: https://github.com/EngrAhmadofficial/CIA-Project
-    branch: ahmad
+    repo: https://gitlab.com/cello-miao-group/CIA-Project.git
+    branch: xinxin
     rootDir: front_student
     buildCommand: npm ci --ignore-scripts && echo "REACT_APP_API_URL=https://cia-backend-api.onrender.com" > .env && npm run build
     staticPublishPath: ./front_student/build
