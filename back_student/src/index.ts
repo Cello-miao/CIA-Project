@@ -80,7 +80,7 @@ async function startServer() {
   app.use(helmet());
   app.use(bodyParser.json());
   app.use(morgan('combined'));
-  const apiPort = Number(process.env.API_INTERNAL_PORT || 3001);
+  const apiPort = Number(process.env.PORT || process.env.API_INTERNAL_PORT || 3001);
   app.get('/health', (_req, res) => {
     res.status(200).send({status: 'ok'});
   });
