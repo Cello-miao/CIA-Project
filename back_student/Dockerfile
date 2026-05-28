@@ -6,10 +6,7 @@ WORKDIR /usr/src/app
 
 COPY package.json yarn.lock ./
 
-# Enforcing yarn to install production dependencies. Build deps are only used during install
-RUN apk add --no-cache --virtual .build-deps python3 make g++ \
-    && yarn install --production --non-interactive --ignore-scripts \
-    && apk del .build-deps \
+RUN yarn install --frozen-lockfile --ignore-engines \
     && yarn cache clean
 
 # Monorepo static artifact injection
