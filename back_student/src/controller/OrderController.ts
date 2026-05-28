@@ -61,9 +61,9 @@ class OrderController {
       });
 
       res.status(201).send(result);
-    } catch (error: any) {
-      console.error('Order creation error:', error.message);
-      res.status(400).send(error.message || 'Unable to create order');
+    } catch (error) {
+      console.error('Order creation error:', (error as any).message);
+      res.status(400).send((error as any).message || 'Unable to create order');
     }
   };
 
