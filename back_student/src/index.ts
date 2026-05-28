@@ -1,4 +1,4 @@
-import 'newrelic';
+// import 'newrelic'; // Disabled until New Relic license key is available
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
 import * as express from 'express';
