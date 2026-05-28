@@ -14,6 +14,10 @@ services:
         value: production
       - key: ALLOWED_ORIGINS
         value: https://cia-frontend-web.onrender.com
+      - key: DEFAULT_ADMIN_USERNAME
+        value: admin
+      - key: DEFAULT_ADMIN_PASSWORD
+        value: Kh3$bF6&nT1*pY9vXc2@Dm5
       - key: DATABASE_URL
         fromDatabase:
           name: cia-mysql-db
