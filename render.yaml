@@ -19,8 +19,9 @@ services:
           name: cia-mysql-db
           property: connectionString
 
-  - type: static
+  - type: web
     name: cia-frontend-web
+    runtime: static
     repo: https://github.com/EngrAhmadofficial/CIA-Project
     branch: ahmad
     rootDir: front_student
