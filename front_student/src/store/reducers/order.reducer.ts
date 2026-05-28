@@ -3,28 +3,7 @@ import { ADD_ORDER, SET_ORDERS, EDIT_ORDER, REMOVE_ORDER } from "../actions/orde
 
 
 const initialState: IOrdersState = {
-    orders: [
-        {
-            id: 1,
-            name: "Apple order",
-            amount: 12,
-            totalPrice: 100,
-            product: {
-                id: 2, name: "Apple", description: "This is Apple and it is healthy",
-                amount: 5, price: 2, hasExpiryDate: true, category: "Fruit"
-            },
-        },
-        {
-            id: 2,
-            name: "Straw order",
-            amount: 7,
-            totalPrice: 7,
-            product: {
-                id: 3, name: "Straw", description: "This is Straw and you can use it for your drink",
-                amount: 100, price: 1, hasExpiryDate: false, category: "Kitchen"
-            },
-        }
-    ]
+    orders: []
 };
 
 function orderReducer(state: IOrdersState = initialState, action: IActionBase): IOrdersState {
