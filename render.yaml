@@ -30,6 +30,7 @@ services:
     rootDir: front_student
     buildCommand: npm ci --ignore-scripts && echo "REACT_APP_API_URL=https://cia-backend-api-kth2.onrender.com" > .env && NODE_OPTIONS=--openssl-legacy-provider npm run build
     staticPublishPath: ./build
+    errorPage: index.html
 
 databases:
   - name: cia-mysql-db
