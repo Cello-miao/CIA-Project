@@ -17,6 +17,7 @@ RUN apk add --no-cache --virtual .build-deps python3 make g++ \
 COPY dist ./build
 COPY ormconfig.js ./
 COPY start.js ./
+COPY newrelic.js ./
 
 RUN chown -R service-web:service-web /usr/src/app
 
