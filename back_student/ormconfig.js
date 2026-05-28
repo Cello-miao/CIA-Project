@@ -12,16 +12,28 @@ const readRequiredEnv = (name) => {
 // Support DATABASE_URL for Render deployment
 let config;
 if (process.env.DATABASE_URL) {
-   // Parse DATABASE_URL format: mysql://user:password@host:port/database
-   const url = new URL(process.env.DATABASE_URL);
-   config = {
-      type: 'mysql',
-      host: url.hostname,
-      port: Number(url.port || '3306'),
-      username: url.username,
-      password: url.password,
-      database: url.pathname.slice(1), // Remove leading /
-   };
+   try {
+      // Parse DATABASE_URL format: mysql://user:password@host:port/database
+      const url = new URL(process.env.DATABASE_URL);
+      const database = url.pathname.slice(1) || 'cia_db'; // Default to cia_db if not specified
+      config = {
+         type: 'mysql',
+         host: url.hostname,
+         port: Number(url.port || '3306'),
+         username: url.username || 'root',
+         password: url.password || '',
+         database: database,
+      };
+      console.log('Database config from DATABASE_URL:', {
+         host: config.host,
+         port: config.port,
+         username: config.username,
+         database: config.database,
+      });
+   } catch (error) {
+      console.error('Failed to parse DATABASE_URL:', error.message);
+      throw new Error(`Invalid DATABASE_URL format: ${error.message}`);
+   }
 } else {
    config = {
       type: 'mysql',
