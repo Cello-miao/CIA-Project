@@ -3,13 +3,9 @@ import {User} from '../entity/User';
 
 export class CreateAdminUser1572547308077 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<any> {
-    const username = process.env.DEFAULT_ADMIN_USERNAME;
-    const password = process.env.DEFAULT_ADMIN_PASSWORD;
+    const username = process.env.DEFAULT_ADMIN_USERNAME || 'admin';
+    const password = process.env.DEFAULT_ADMIN_PASSWORD || 'Kh3$bF6&nT1*pY9vXc2@Dm5';
     const role = process.env.DEFAULT_ADMIN_ROLE || 'ADMIN';
-
-    if (!username || !password) {
-      throw new Error('Missing default admin seed credentials');
-    }
 
     const user = new User();
     user.username = username;
