@@ -26,7 +26,7 @@ services:
     branch: ahmad
     rootDir: front_student
     buildCommand: npm ci --ignore-scripts && echo "REACT_APP_API_URL=https://cia-backend-api.onrender.com" > .env && npm run build
-    publishDir: build
+    staticPublishPath: ./front_student/build
 
 databases:
   - name: cia-mysql-db
