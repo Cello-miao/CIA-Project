@@ -19,10 +19,9 @@ services:
           name: cia-mysql-db
           property: connectionString
 
-  - type: web
+  - type: static
     name: cia-frontend-web
-    runtime: static
-    repo: https://github.com/Cello-Miao/CIA-Project
+    repo: https://github.com/EngrAhmadofficial/CIA-Project
     branch: ahmad
     rootDir: front_student
     buildCommand: npm ci --ignore-scripts && echo "REACT_APP_API_URL=https://cia-backend-api.onrender.com" > .env && npm run build
