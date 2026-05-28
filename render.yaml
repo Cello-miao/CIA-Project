@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: cia-backend-api
+    runtime: node
+    repo: https://github.com/Cello-Miao/CIA-Project
+    branch: ahmad
+    rootDir: back_student
+    buildCommand: yarn install --frozen-lockfile && yarn build
+    startCommand: node build/index.js
+    envVars:
+      - key: API_INTERNAL_PORT
+        value: 3001
+      - key: NODE_ENV
+        value: production
+      - key: ALLOWED_ORIGINS
+        value: https://cia-frontend-web.onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cia-mysql-db
+          property: connectionString
+
+  - type: web
+    name: cia-frontend-web
+    runtime: static
+    repo: https://github.com/Cello-Miao/CIA-Project
+    branch: ahmad
+    rootDir: front_student
+    buildCommand: npm ci --ignore-scripts && echo "REACT_APP_API_URL=https://cia-backend-api.onrender.com" > .env && npm run build
+    publishDir: build
+
+databases:
+  - name: cia-mysql-db
+    databaseName: cia_db
+    user: cia_user
+    plan: free
