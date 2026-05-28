@@ -5,7 +5,7 @@ services:
     repo: https://gitlab.com/cello-miao-group/CIA-Project.git
     branch: xinxin
     rootDir: back_student
-    buildCommand: yarn install --frozen-lockfile && yarn build
+    buildCommand: npm ci && npm run build
     startCommand: node build/index.js
     envVars:
       - key: API_INTERNAL_PORT
