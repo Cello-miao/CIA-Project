@@ -9,13 +9,32 @@ const readRequiredEnv = (name) => {
    return value;
 };
 
+// Support DATABASE_URL for Render deployment
+let config;
+if (process.env.DATABASE_URL) {
+   // Parse DATABASE_URL format: mysql://user:password@host:port/database
+   const url = new URL(process.env.DATABASE_URL);
+   config = {
+      type: 'mysql',
+      host: url.hostname,
+      port: Number(url.port || '3306'),
+      username: url.username,
+      password: url.password,
+      database: url.pathname.slice(1), // Remove leading /
+   };
+} else {
+   config = {
+      type: 'mysql',
+      host: readRequiredEnv('DB_HOST'),
+      port: Number(process.env.DB_PORT || '3306'),
+      username: readRequiredEnv('DB_USER'),
+      password: readRequiredEnv('DB_PASSWORD'),
+      database: readRequiredEnv('DB_NAME'),
+   };
+}
+
 module.exports = {
-   type: 'mysql',
-   host: readRequiredEnv('DB_HOST'),
-   port: Number(process.env.DB_PORT || '3306'),
-   username: readRequiredEnv('DB_USER'),
-   password: readRequiredEnv('DB_PASSWORD'),
-   database: readRequiredEnv('DB_NAME'),
+   ...config,
    synchronize: true,
    logging: false,
    migrationsRun: true,
