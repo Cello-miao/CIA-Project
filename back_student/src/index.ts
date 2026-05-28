@@ -73,7 +73,13 @@ createConnection()
       console.info(`API server is ready on port ${apiPort}`);
     });
   })
-  .catch(() => {
-    console.error('Failed to start API server');
+  .catch((error) => {
+    console.error('Failed to start API server:', error);
+    if (error.message) {
+      console.error('Error message:', error.message);
+    }
+    if (error.stack) {
+      console.error('Stack trace:', error.stack);
+    }
     process.exit(1);
   });
