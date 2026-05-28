@@ -19,7 +19,6 @@ CIA is a full-stack web application designed for inventory and user management. 
 - **Docker Containerization**: Multi-stage builds for optimized production images
 - **API Documentation**: Swagger UI integration for interactive API exploration
 - **Performance Monitoring**: Morgan HTTP logging and Swagger Stats metrics dashboard
-- **GitHub Actions CI/CD**: Automated repository mirroring to organization repositories
 
 ---
 
@@ -37,30 +36,51 @@ CIA-Project/
 │   │   ├── migration/      # Database migrations
 │   │   └── routes/         # API route definitions
 │   ├── Dockerfile          # Production Docker image
-│   ├── docker-compose.yml  # Container orchestration
+│   ├── docker-compose.yml  # Backend container orchestration
 │   ├── ormconfig.js        # TypeORM database config
-│   └── package.json        # Node.js dependencies
+│   ├── package.json        # Node.js dependencies
+│   ├── tsconfig.json       # TypeScript configuration
+│   └── jest.config.js      # Jest test configuration
 │
 ├── front_student/          # React TypeScript frontend
 │   ├── src/
 │   │   ├── App.tsx         # Main app component
 │   │   ├── index.tsx       # React entry point
-│   │   ├── common/         # Reusable components
+│   │   ├── common/         # Reusable components & types
+│   │   │   ├── components/ # UI components
+│   │   │   └── types/      # TypeScript interfaces
 │   │   ├── components/     # Feature components
-│   │   ├── store/          # Redux store configuration
+│   │   │   ├── Account/    # Login/Register
+│   │   │   ├── Admin/      # Admin dashboard
+│   │   │   ├── Home/       # Home page
+│   │   │   ├── Orders/     # Orders management
+│   │   │   ├── Products/   # Products management
+│   │   │   ├── Users/      # Users management
+│   │   │   └── Menu/       # Navigation menus
+│   │   ├── store/          # Redux store
 │   │   │   ├── actions/    # Redux actions
 │   │   │   ├── reducers/   # Redux reducers
 │   │   │   └── models/     # TypeScript interfaces
+│   │   ├── assets/         # Static assets
 │   │   └── styles/         # Global stylesheets
+│   ├── public/             # Public assets
+│   │   ├── index.html      # HTML template
+│   │   └── manifest.json   # PWA manifest
 │   ├── Dockerfile          # Production Docker image
-│   ├── docker-compose.yml  # Frontend service config
-│   └── package.json        # Node.js dependencies
+│   ├── package.json        # Node.js dependencies
+│   ├── tsconfig.json       # TypeScript configuration
+│   └── _config.yml         # Jekyll config
 │
-├── docs/                   # Documentation
-├── .github/workflows/      # GitHub Actions workflows
-│   └── mirror.yml          # Repository synchronization
-├── ARCHITECTURE.md         # System architecture & design
-├── API_LOGGING.md          # Logging & monitoring guide
+├── docs/                   # Documentation & resources
+│   ├── CIA_Technical_Documentation.pdf
+│   └── DEPLOY.md           # Deployment guide
+│
+├── .gitignore              # Git ignore rules
+├── .env.example            # Environment variables template
+├── docker-compose.yml      # Root docker-compose orchestration
+├── render.yaml             # Render deployment config
+├── run_smoke_tests.sh      # Smoke tests script
+├── password.txt            # (Sensitive - see .gitignore)
 └── README.md               # This file
 ```
 
@@ -103,9 +123,14 @@ CIA-Project/
    cd CIA-Project
    ```
 
-2. **Start all services with Docker Compose:**
+2. **Configure environment variables (optional):**
    ```bash
-   cd back_student
+   cp .env.example .env
+   # Edit .env with your settings (backend uses docker-compose for config)
+   ```
+
+3. **Start all services with Docker Compose:**
+   ```bash
    docker-compose up -d
    ```
 
@@ -114,12 +139,12 @@ CIA-Project/
    - **Backend**: Express API on `http://localhost:3001`
    - **Database**: MySQL on `localhost:3306`
 
-3. **Verify services are running:**
+4. **Verify services are running:**
    ```bash
    docker ps
    ```
 
-4. **Access the application:**
+5. **Access the application:**
    - Frontend: `http://localhost:8080`
    - API Health: `http://localhost:3001/api/health`
    - Swagger Stats: `http://localhost:3001/swagger-stats/ui`
@@ -212,13 +237,13 @@ Role: ADMIN
 ### Backend (.env or docker-compose.yml)
 ```env
 DB_HOST=db                    # Database hostname
-DB_USER=root                  # Database username
-DB_PASSWORD=root              # Database password
-DB_NAME=dev_db                # Database name
-DB_PORT=3306                  # Database port
-JWT_SECRET=your-secret-key    # JWT signing secret
-BCRYPT_SALT_ROUNDS=12         # Password hash salt rounds
-API_INTERNAL_PORT=3001        # Express server port
+DB_USER=                      # Database username
+DB_PASSWORD=                  # Database password
+DB_NAME=                      # Database name
+DB_PORT=                      # Database port
+JWT_SECRET=                   # JWT signing secret
+BCRYPT_SALT_ROUNDS=           # Password hash salt rounds
+API_INTERNAL_PORT=            # Express server port
 NODE_ENV=production           # Node.js environment
 ```
 
@@ -344,22 +369,9 @@ kubectl apply -f k8s/
 
 ## CI/CD Pipeline
 
-### GitHub Actions Workflow
+### Future CI/CD Implementation
 
-The project includes automated GitHub Actions workflows for:
-
-1. **Repository Mirroring** (`.github/workflows/mirror.yml`)
-   - Trigger: Every push to any branch/tag
-   - Action: Sync to organization repository
-   - Target: `EpitechMscInternationalPromo2027/I-NSA-801-INT-8-1-cia-2`
-
-### Future CI/CD Enhancements
-- [ ] Unit test execution on PR
-- [ ] Docker image building and pushing
-- [ ] Automated deployment to staging
-- [ ] Security scanning (SAST/DAST)
-- [ ] Performance benchmarking
-- [ ] Artifact management system
+The project is prepared for GitHub Actions CI/CD workflows. Planned implementations include:
 
 ---
 
@@ -385,45 +397,38 @@ environment:
   JWT_SECRET: test-secret-key
 ```
 
-### Port Already in Use
-```bash
-# Change port mapping in docker-compose.yml
-ports:
-  - "8081:8080"  # Frontend
-  - "3002:3001"  # Backend
-```
-
-### CORS Issues
-Check frontend API URL configuration in `docker-compose.yml`:
-```yaml
-environment:
-  REACT_APP_API_URL: http://localhost:3001
-```
-
----
-
 ## File Descriptions
 
-### [ARCHITECTURE.md](ARCHITECTURE.md)
-Comprehensive system design documentation including:
-- System architecture diagram (Mermaid)
-- Technology stack table
-- Authentication flow sequence diagram
-- API endpoints reference
-- Docker build pipelines
-- Network configuration
-- Security implementation details
-- Environment variables
-- Future enhancements
+### Key Project Files
 
-### [API_LOGGING.md](API_LOGGING.md)
-Logging and monitoring system guide covering:
-- Morgan HTTP logging setup
-- Swagger Stats metrics dashboard
-- NewRelic APM integration
-- Log viewing commands
-- Security considerations
-- Monitoring best practices
+- **docker-compose.yml** - Root orchestration file for all services (frontend, backend, database)
+- **.env.example** - Template for environment variables configuration
+- **render.yaml** - Deployment configuration for Render platform
+- **run_smoke_tests.sh** - Basic health check script for deployed services
+- **docs/** - Documentation and technical resources:
+  - `CIA_Technical_Documentation.pdf` - Official project specifications
+  - `DEPLOY.md` - Deployment and infrastructure guide
+
+### Configuration Files (per service)
+
+**Backend (back_student/):**
+- `Dockerfile` - Multi-stage Express API production image
+- `docker-compose.yml` - Backend service-specific orchestration
+- `ormconfig.js` - TypeORM database connection configuration
+- `tsconfig.json` - TypeScript compiler options
+- `jest.config.js` - Jest testing framework configuration
+- `package.json` - Dependencies and npm scripts
+
+**Frontend (front_student/):**
+- `Dockerfile` - Multi-stage React Nginx production image
+- `package.json` - Dependencies and npm scripts
+- `tsconfig.json` - TypeScript compiler options
+- `_config.yml` - Jekyll/GitHub Pages configuration
+- `public/manifest.json` - PWA manifest file
+
+### GitHub Configuration
+
+- `.gitignore` - Version control exclusions (excludes `password.txt` and sensitive data)
 
 ---
 
@@ -463,13 +468,6 @@ Follow Conventional Commits:
 - ✅ Environment-based secrets
 - ✅ Database isolation
 
-### Not Yet Implemented
-- ❌ SSL/TLS encryption
-- ❌ Rate limiting
-- ❌ Request signing
-- ❌ Audit logging
-- ❌ API versioning
-
 ---
 
 ## License
@@ -477,24 +475,3 @@ Follow Conventional Commits:
 This project is part of EPITECH's MSc International Program.
 
 ---
-
-## Support & Contact
-
-For issues, questions, or contributions, please:
-1. Check [ARCHITECTURE.md](ARCHITECTURE.md) for system design details
-2. Review [API_LOGGING.md](API_LOGGING.md) for monitoring information
-3. Check GitHub Issues for existing solutions
-4. Contact the project maintainers
-
----
-
-## Changelog
-
-### Version 1.0.0 (May 28, 2026)
-- Initial project setup with React frontend
-- Express API with JWT authentication
-- MySQL database integration
-- Docker Compose containerization
-- GitHub Actions mirror workflow
-- Comprehensive documentation
-- Security implementation with bcryptjs password hashing
