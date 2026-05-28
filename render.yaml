@@ -2,7 +2,7 @@ services:
   - type: web
     name: cia-backend-api
     runtime: node
-    repo: https://github.com/Cello-Miao/CIA-Project
+    repo: https://github.com/EngrAhmadofficial/CIA-Project
     branch: ahmad
     rootDir: back_student
     buildCommand: yarn install --frozen-lockfile && yarn build
