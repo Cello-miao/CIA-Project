@@ -283,6 +283,105 @@ print('no')
     record FAIL "Product list failed (expected HTTP 200, got ${LIST_HTTP_CODE:-error})"
     record INFO "Body: ${LIST_BODY:0:500}"
   fi
+
+  # Order creation + inventory decrement (11th assertion)
+  if [[ -n "$PRODUCT_ID" ]]; then
+    ORDER_QTY=3
+    INITIAL_STOCK=10
+    EXPECTED_STOCK=$((INITIAL_STOCK - ORDER_QTY))
+    ORDER_URL="${API_BASE_URL%/}/order/"
+    PRODUCT_GET_URL="${API_BASE_URL%/}/product/${PRODUCT_ID}"
+    ORDER_NAME="SmokeTest-Order-${UNIQUE_SUFFIX}"
+
+    ORDER_PAYLOAD=$(cat <<EOF
+{"name":"${ORDER_NAME}","amount":${ORDER_QTY},"productId":${PRODUCT_ID}}
+EOF
+)
+
+    record INFO "POST $ORDER_URL (order: $ORDER_NAME, qty=$ORDER_QTY on product id=$PRODUCT_ID)"
+    ORDER_RESPONSE="$(curl -sS -w '\n%{http_code}' -X POST "$ORDER_URL" \
+      -H 'Content-Type: application/json' \
+      -H "auth: $TOKEN" \
+      -d "$ORDER_PAYLOAD" 2>&1)" || true
+
+    ORDER_HTTP_CODE="$(echo "$ORDER_RESPONSE" | tail -n1)"
+    ORDER_BODY="$(echo "$ORDER_RESPONSE" | sed '$d')"
+    record INFO "Order create HTTP status: ${ORDER_HTTP_CODE:-<none>}"
+
+    ORDER_INTEGRITY_OK="no"
+    ORDER_ID=""
+    ORDER_FAIL_MSG=""
+
+    if [[ "$ORDER_HTTP_CODE" == "201" ]]; then
+      ORDER_ID="$(echo "$ORDER_BODY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))" 2>/dev/null || true)"
+      ORDER_SCHEMA_OK="$(echo "$ORDER_BODY" | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    print('no'); sys.exit(0)
+if not isinstance(d, dict) or not d.get('id'):
+    print('no'); sys.exit(0)
+if d.get('name') != '${ORDER_NAME}' or int(d.get('amount', 0)) != ${ORDER_QTY}:
+    print('no'); sys.exit(0)
+prod = d.get('product') or {}
+if int(prod.get('id', 0)) != int('${PRODUCT_ID}'):
+    print('no'); sys.exit(0)
+print('yes')
+" 2>/dev/null || echo "no")"
+      if [[ "$ORDER_SCHEMA_OK" != "yes" || -z "$ORDER_ID" ]]; then
+        ORDER_FAIL_MSG="HTTP 201 but order response schema validation failed"
+      fi
+    else
+      ORDER_FAIL_MSG="Order creation failed (expected HTTP 201, got ${ORDER_HTTP_CODE:-error})"
+    fi
+
+    if [[ -z "$ORDER_FAIL_MSG" ]]; then
+      record INFO "GET $PRODUCT_GET_URL (verify stock decrement)"
+      PRODUCT_GET_RESPONSE="$(curl -sS -w '\n%{http_code}' -X GET "$PRODUCT_GET_URL" \
+        -H "auth: $TOKEN" 2>&1)" || true
+
+      PRODUCT_GET_HTTP="$(echo "$PRODUCT_GET_RESPONSE" | tail -n1)"
+      PRODUCT_GET_BODY="$(echo "$PRODUCT_GET_RESPONSE" | sed '$d')"
+      record INFO "Product GET HTTP status: ${PRODUCT_GET_HTTP:-<none>}"
+
+      if [[ "$PRODUCT_GET_HTTP" == "200" ]]; then
+        STOCK_OK="$(echo "$PRODUCT_GET_BODY" | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    print('no'); sys.exit(0)
+if int(d.get('id', 0)) != int('${PRODUCT_ID}'):
+    print('no'); sys.exit(0)
+if int(d.get('amount', -1)) == int('${EXPECTED_STOCK}'):
+    print('yes')
+else:
+    print('no')
+" 2>/dev/null || echo "no")"
+        if [[ "$STOCK_OK" == "yes" ]]; then
+          ORDER_INTEGRITY_OK="yes"
+        else
+          ORDER_FAIL_MSG="Product stock not decremented to expected ${EXPECTED_STOCK} after order"
+          record INFO "Body: $PRODUCT_GET_BODY"
+        fi
+      else
+        ORDER_FAIL_MSG="Product fetch for stock check failed (expected HTTP 200, got ${PRODUCT_GET_HTTP:-error})"
+        record INFO "Body: ${PRODUCT_GET_BODY:0:500}"
+      fi
+    fi
+
+    if [[ "$ORDER_INTEGRITY_OK" == "yes" ]]; then
+      record PASS "Order POST /order/ persisted (id=$ORDER_ID) and product stock decremented (${INITIAL_STOCK} -> ${EXPECTED_STOCK})"
+    else
+      record FAIL "${ORDER_FAIL_MSG:-Order/inventory integrity check failed}"
+      if [[ "$ORDER_HTTP_CODE" != "201" ]]; then
+        record INFO "Order body: $ORDER_BODY"
+      fi
+    fi
+  else
+    record FAIL "Skipping order test — no product id from create step"
+  fi
 fi
 
 # ---------------------------------------------------------------------------
