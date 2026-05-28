@@ -44,7 +44,7 @@
       "tslint-config-prettier": "^1.18.0",
       "tslint-eslint-rules": "^5.4.0",
       "tslint-plugin-prettier": "^2.0.1",
-      "typeorm": "0.2.20"
+      "typeorm": "0.2.45"
    },
    "scripts": {
       "tsc": "tsc",
