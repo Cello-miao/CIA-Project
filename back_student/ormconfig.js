@@ -9,22 +9,41 @@ const readRequiredEnv = (name) => {
    return value;
 };
 
-// Support DATABASE_URL for Render deployment
+// Support DATABASE_URL for Render deployment (PostgreSQL or MySQL)
 let config;
 if (process.env.DATABASE_URL) {
    try {
-      // Parse DATABASE_URL format: mysql://user:password@host:port/database
       const url = new URL(process.env.DATABASE_URL);
-      const database = url.pathname.slice(1) || 'cia_db'; // Default to cia_db if not specified
-      config = {
-         type: 'mysql',
-         host: url.hostname,
-         port: Number(url.port || '3306'),
-         username: url.username || 'root',
-         password: url.password || '',
-         database: database,
-      };
+      const protocol = url.protocol.replace(':', ''); // Get 'mysql' or 'postgresql'
+      const database = url.pathname.slice(1) || 'cia_db'; // Remove leading /
+      
+      if (protocol === 'postgresql' || protocol === 'postgres') {
+         // PostgreSQL configuration
+         config = {
+            type: 'postgres',
+            host: url.hostname,
+            port: Number(url.port || '5432'),
+            username: url.username || 'postgres',
+            password: url.password || '',
+            database: database,
+            ssl: isProduction ? { rejectUnauthorized: false } : false,
+         };
+      } else if (protocol === 'mysql' || protocol === 'mysql2') {
+         // MySQL configuration
+         config = {
+            type: 'mysql',
+            host: url.hostname,
+            port: Number(url.port || '3306'),
+            username: url.username || 'root',
+            password: url.password || '',
+            database: database,
+         };
+      } else {
+         throw new Error(`Unsupported database protocol: ${protocol}`);
+      }
+      
       console.log('Database config from DATABASE_URL:', {
+         type: config.type,
          host: config.host,
          port: config.port,
          username: config.username,
@@ -35,6 +54,7 @@ if (process.env.DATABASE_URL) {
       throw new Error(`Invalid DATABASE_URL format: ${error.message}`);
    }
 } else {
+   // Fallback to individual environment variables
    config = {
       type: 'mysql',
       host: readRequiredEnv('DB_HOST'),
