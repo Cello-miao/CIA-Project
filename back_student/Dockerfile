@@ -23,4 +23,4 @@ ENV NODE_ENV=production
 USER service-web
 
 # Use the start wrapper which waits for DB port and then requires the built app
-CMD ["node", "start.js"]
+CMD ["node", "-r", "newrelic", "start.js"]
