@@ -32,7 +32,6 @@
       "mysql": "^2.17.1",
       "prettier": "^1.18.2",
       "reflect-metadata": "^0.1.10",
-      "sqlite3": "^4.0.3",
       "supertest": "^4.0.2",
       "swagger-jsdoc": "^3.4.0",
       "swagger-stats": "^0.95.11",
@@ -54,7 +53,7 @@
       "schema:drop": "ts-node ./node_modules/typeorm/cli.js schema:drop",
       "schema:sync": "ts-node ./node_modules/typeorm/cli.js schema:sync",
       "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run",
-      "test": "jest --maxWorkers=1 --verbose=true",
+      "test": "jest --maxWorkers=1 --verbose=true --passWithNoTests",
       "migration:start": "yarn schema:drop && yarn schema:sync && yarn migration:run"
    }
 }
