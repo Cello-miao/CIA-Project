@@ -28,7 +28,7 @@ services:
     repo: https://gitlab.com/cello-miao-group/CIA-Project.git
     branch: xinxin
     rootDir: front_student
-    buildCommand: npm ci --ignore-scripts && echo "REACT_APP_API_URL=https://cia-backend-api.onrender.com" > .env && NODE_OPTIONS=--openssl-legacy-provider npm run build
+    buildCommand: npm ci --ignore-scripts && echo "REACT_APP_API_URL=https://cia-backend-api-kth2.onrender.com" > .env && NODE_OPTIONS=--openssl-legacy-provider npm run build
     staticPublishPath: ./build
 
 databases:
