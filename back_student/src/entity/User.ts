@@ -1,6 +1,6 @@
 import {compareSync, hashSync} from 'bcryptjs';
 import {Exclude} from 'class-transformer';
-import {IsNotEmpty, Length} from 'class-validator';
+import {IsNotEmpty, Length, Matches} from 'class-validator';
 import {
   Column,
   CreateDateColumn,
@@ -25,6 +25,10 @@ export class User {
   @Column()
   @Exclude()
   @Length(8, 100)
+  @Matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
+    { message: 'Password must contain uppercase, lowercase, number and special character (@$!%*?&)' }
+  )
   public password: string;
 
   @Column()
