@@ -17,7 +17,11 @@ class AuthController {
     // Validade if the parameters are ok
     const errors = await validate(user);
     if (errors.length > 0) {
-      res.status(400).send(errors);
+      const errorMessages = errors.map(error => ({
+        property: error.property,
+        constraints: error.constraints
+      }));
+      res.status(400).send(errorMessages);
       return;
     }
 
