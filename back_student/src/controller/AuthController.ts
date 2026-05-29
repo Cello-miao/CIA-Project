@@ -17,11 +17,17 @@ class AuthController {
     // Validade if the parameters are ok
     const errors = await validate(user);
     if (errors.length > 0) {
-      const errorMessages = errors.map(error => ({
-        property: error.property,
-        constraints: error.constraints
-      }));
-      res.status(400).send(errorMessages);
+      const errorMessages = [];
+      errors.forEach(error => {
+        if (error.constraints) {
+          errorMessages.push(...Object.values(error.constraints));
+        }
+      });
+      const finalMessage = errorMessages.length > 0 
+        ? errorMessages.join('; ') 
+        : 'Validation failed';
+      console.error('Validation errors:', errorMessages);
+      res.status(400).send({message: finalMessage});
       return;
     }
 
