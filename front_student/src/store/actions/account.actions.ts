@@ -60,6 +60,11 @@ export function register(email: string, password: string): any {
             if (e.response === undefined) {
                 return dispatch(addNotification("Error", e.message));
             }
+            // Handle new object format {message: "..."}
+            if (e.response.data.message !== undefined) {
+                return dispatch(addNotification("Error", e.response.data.message));
+            }
+            // Handle old array format
             if (e.response.data.length !== undefined) {
                 return dispatch(addNotification("Error", e.response.data[0].constraints.length));
             }
