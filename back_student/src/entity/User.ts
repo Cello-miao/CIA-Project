@@ -24,7 +24,7 @@ export class User {
 
   @Column()
   @Exclude()
-  @Length(4, 100)
+  @Length(8, 100)
   public password: string;
 
   @Column()
